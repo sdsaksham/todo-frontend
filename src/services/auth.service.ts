@@ -1,15 +1,14 @@
+// src/app/services/auth.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
-import { environment } from 'src/environments/environment';
+import { ApiService } from './api.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private authUrl = environment.baseUrl;
   private currentUser: string = '';
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private api: ApiService, private router: Router) {}
 
   setCurrentUser(username: string) {
     this.currentUser = username;
@@ -20,11 +19,11 @@ export class AuthService {
   }
 
   login(data: { username: string; password: string }): Observable<any> {
-    return this.http.post(`${this.authUrl}/login`, data);
+    return this.api.post('login', data);
   }
 
   register(data: { username: string; password: string }): Observable<any> {
-    return this.http.post(`${this.authUrl}/register`, data);
+    return this.api.post('register', data);
   }
 
   setToken(token: string): void {
