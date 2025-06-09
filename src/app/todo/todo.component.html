@@ -1,10 +1,6 @@
 <div class="todo-container">
   <h1>My Todo List</h1>
 
-  <div *ngIf="loading" class="backdrop">
-    <div class="spinner"></div>
-  </div>
-
   <div class="input-group">
     <input [(ngModel)]="newTask" placeholder="Enter new task" />
     <button (click)="addTodo()">Add</button>
@@ -32,7 +28,7 @@
     </li>
   </ul>
 
-  <div *ngIf="!loading && todos.length === 0" class="empty-state">
+  <div *ngIf="todos.length === 0" class="empty-state">
     <div class="empty-icon">📝</div>
     <p>No tasks yet. Add your first task!</p>
   </div>

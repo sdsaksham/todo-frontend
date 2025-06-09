@@ -1,32 +1,25 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Todo } from 'src/interfaces/todo.interface';
 import { environment } from 'src/environments/environment';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class ApiService {
   constructor(private http: HttpClient) {}
 
-  getTodos(): Observable<Todo[]> {
-    return this.http.get<Todo[]>(`${environment.baseUrl}/todo`);
+  get<T>(endpoint: string): Observable<T> {
+    return this.http.get<T>(`${environment.baseUrl}/${endpoint}`);
   }
 
-  getTodo(id: string): Observable<Todo> {
-    return this.http.get<Todo>(`${environment.baseUrl}/todo/${id}`);
+  post<T>(endpoint: string, body: any): Observable<T> {
+    return this.http.post<T>(`${environment.baseUrl}/${endpoint}`, body);
   }
 
-  addTodo(todo: Todo): Observable<Todo> {
-    return this.http.post<Todo>(`${environment.baseUrl}/todo`, todo);
+  patch<T>(endpoint: string, body: any): Observable<T> {
+    return this.http.patch<T>(`${environment.baseUrl}/${endpoint}`, body);
   }
 
-  updateTodo(id: string, todo: Partial<Todo>): Observable<Todo> {
-    return this.http.patch<Todo>(`${environment.baseUrl}/todo/${id}`, todo);
-  }
-
-  deleteTodo(id: string): Observable<any> {
-    return this.http.delete(`${environment.baseUrl}/todo/${id}`);
+  delete<T>(endpoint: string): Observable<T> {
+    return this.http.delete<T>(`${environment.baseUrl}/${endpoint}`);
   }
 }

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Todo } from 'src/interfaces/todo.interface';
 import { ApiService } from 'src/services/api.service';
+import { LoaderService } from 'src/services/loader.service';
 
 @Component({
   selector: 'app-todo',
@@ -10,85 +11,100 @@ import { ApiService } from 'src/services/api.service';
 export class TodoComponent implements OnInit {
   todos: Todo[] = [];
   newTask: string = '';
-  editingTodoId: string | null = null;
+  editingTodoId: string | null | undefined = null;
   editedTask: string = '';
-  loading: boolean = false;
 
-  constructor(private apiService: ApiService) {}
+  constructor(private api: ApiService, private loader: LoaderService) {}
 
   ngOnInit(): void {
     this.fetchTodos();
   }
 
   fetchTodos(): void {
-    this.loading = true;
-    this.apiService.getTodos().subscribe({
-      next: (data) => (this.todos = data),
-      error: () => {},
-      complete: () => (this.loading = false),
+    this.loader.show();
+    this.api.get<Todo[]>('todo').subscribe({
+      next: (data) => {
+        this.todos = data;
+        this.loader.hide();
+      },
+      error: () => {
+        this.loader.hide();
+      },
     });
   }
 
   addTodo(): void {
     if (!this.newTask.trim()) return;
 
-    const newTodo: Todo = {
+    const newTodo: Partial<Todo> = {
       task: this.newTask,
       isTaskCompleted: false,
     };
 
-    this.loading = true;
-    this.apiService.addTodo(newTodo).subscribe({
+    this.loader.show();
+    this.api.post<Todo>('todo', newTodo).subscribe({
       next: (todo) => {
         this.todos.push(todo);
         this.newTask = '';
+        this.loader.hide();
       },
-      error: () => {},
-      complete: () => (this.loading = false),
+      error: () => {
+        this.loader.hide();
+      },
     });
   }
 
   toggleCompletion(todo: Todo): void {
-    this.loading = true;
-    this.apiService
-      .updateTodo(todo._id!, { isTaskCompleted: !todo.isTaskCompleted })
+    this.loader.show();
+    this.api
+      .patch<Todo>(`todo/${todo._id}`, {
+        isTaskCompleted: !todo.isTaskCompleted,
+      })
       .subscribe({
         next: (updated) => {
           todo.isTaskCompleted = updated.isTaskCompleted;
+          this.loader.hide();
         },
-        error: () => {},
-        complete: () => (this.loading = false),
+        error: () => {
+          this.loader.hide();
+        },
       });
   }
 
   deleteTodo(id: string): void {
-    this.loading = true;
-    this.apiService.deleteTodo(id).subscribe({
+    this.loader.show();
+    this.api.delete(`todo/${id}`).subscribe({
       next: () => {
-        this.todos = this.todos.filter((todo) => todo._id !== id);
+        this.todos = this.todos.filter((t) => t._id !== id);
+        this.loader.hide();
       },
-      error: () => {},
-      complete: () => (this.loading = false),
+      error: () => {
+        this.loader.hide();
+      },
     });
   }
 
   startEdit(todo: Todo): void {
-    this.editingTodoId = todo._id!;
+    this.editingTodoId = todo._id;
     this.editedTask = todo.task;
   }
 
   saveEdit(todo: Todo): void {
     if (!this.editedTask.trim()) return;
 
-    this.loading = true;
-    this.apiService.updateTodo(todo._id!, { task: this.editedTask }).subscribe({
-      next: (updated) => {
-        todo.task = updated.task;
-        this.cancelEdit();
-      },
-      error: () => {},
-      complete: () => (this.loading = false),
-    });
+    this.loader.show();
+    this.api
+      .patch<Todo>(`todo/${todo._id}`, { task: this.editedTask })
+      .subscribe({
+        next: (updated) => {
+          todo.task = updated.task;
+          this.cancelEdit();
+          this.loader.hide();
+        },
+        error: () => {
+          this.loader.hide();
+        },
+      });
   }
 
   cancelEdit(): void {
